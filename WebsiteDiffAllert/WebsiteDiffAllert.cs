@@ -14,40 +14,49 @@ namespace WebsiteDiffAllert
         [FunctionName("WebsiteDiffAllert")]
         public static async Task RunAsync([TimerTrigger("*/15 * * * * *")] TimerInfo myTimer, ILogger log)
         {
-            var connectionString = Environment.GetEnvironmentVariable("STORAGE_CONNECTION_STRING");
+            var connectionString = Environment.GetEnvironmentVariable("WEBSITE_STORE_CONNECTION_STRING");
             var websiteUrl = Environment.GetEnvironmentVariable("WEBSITE_URL");
             var webhook = Environment.GetEnvironmentVariable("ALERT_WEBHOOK");
-            var currentFile = "website.html";
-            var oldFile = "website-old.html";
+            var blobContainerName = Environment.GetEnvironmentVariable("WEBSITE_STORE_CONTAINER");
+            var fileName = "website.html";
+            var currentFile = Path.Combine(System.IO.Path.GetTempPath(), fileName);
+            var oldFile = Path.Combine(System.IO.Path.GetTempPath(), "website-old.html");
 
             using (WebClient client = new WebClient()) {
 
-                client.DownloadFile("https://red.mediamarkt.at/playstation-5.html", currentFile);
+                log.LogInformation("Downloading current version of webiste " + websiteUrl);
+                client.DownloadFile(websiteUrl, currentFile);
 
+                log.LogInformation("Initializing blob service client");
                 BlobServiceClient serviceClient = new BlobServiceClient(connectionString);
 
-                BlobContainerClient containerClient = serviceClient.GetBlobContainerClient("htmlcontainer");
+                log.LogInformation("Initializing blob container client for container " + blobContainerName);
+                BlobContainerClient containerClient = serviceClient.GetBlobContainerClient(blobContainerName);
 
-                BlobClient blobClient = containerClient.GetBlobClient(currentFile);
+                log.LogInformation("Initializing blob client for " + currentFile);
+                BlobClient blobClient = containerClient.GetBlobClient(fileName);
 
-                if (blobClient.Exists()) {
-
-
+                if (blobClient.Exists())
+                {
                     await blobClient.DownloadToAsync(oldFile);
 
-                    log.LogDebug("Download website from blob storage");
+                    log.LogInformation("Download website from blob storage");
 
                     string currentBody = Body(File.ReadAllText(currentFile));
                     string oldBody = Body(File.ReadAllText(oldFile));
 
-                    if (!currentBody.Equals(oldBody)) {
-                        log.LogInformation("Identified website change");
-
+                    if (!currentBody.Equals(oldBody))
+                    {
+                        log.LogInformation("Identified website change. Triggering webhook to fire alert...");
                         await TriggerWebhook(webhook, websiteUrl, log);
                     }
-                    else {
-                        log.LogDebug("The website did not change");
+                    else
+                    {
+                        log.LogInformation("The website did not change since the last check");
                     }
+                }
+                else {
+                    log.LogInformation("Skipping comparison because no older version was found in the blob container");
                 }
 
                 await blobClient.DeleteAsync();
