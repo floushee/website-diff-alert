@@ -33,9 +33,10 @@ namespace WebsiteDiffAllert
                 log.LogInformation("Initializing blob container client for container " + blobContainerName);
                 BlobContainerClient containerClient = serviceClient.GetBlobContainerClient(blobContainerName);
 
-                log.LogInformation("Initializing blob client for " + currentFile);
+                log.LogInformation("Initializing blob client for " + fileName);
                 BlobClient blobClient = containerClient.GetBlobClient(fileName);
 
+                log.LogInformation("Checking if blob " + fileName + " already exists");
                 if (blobClient.Exists())
                 {
                     await blobClient.DownloadToAsync(oldFile);
@@ -54,12 +55,15 @@ namespace WebsiteDiffAllert
                     {
                         log.LogInformation("The website did not change since the last check");
                     }
+
+                    log.LogInformation("Deleting old version of the website");
+                    await blobClient.DeleteAsync();
                 }
                 else {
                     log.LogInformation("Skipping comparison because no older version was found in the blob container");
                 }
 
-                await blobClient.DeleteAsync();
+                log.LogInformation("Uploading new version of the website");
                 await blobClient.UploadAsync(currentFile);
             }
         }
