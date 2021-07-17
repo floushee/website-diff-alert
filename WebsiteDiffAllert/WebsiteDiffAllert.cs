@@ -16,7 +16,7 @@ namespace WebsiteDiffAllert
         {
             var connectionString = Environment.GetEnvironmentVariable("WEBSITE_STORE_CONNECTION_STRING");
             var websiteUrl = Environment.GetEnvironmentVariable("WEBSITE_URL");
-            var webhook = Environment.GetEnvironmentVariable("ALERT_WEBHOOK");
+            var webhook = Environment.GetEnvironmentVariable("WEBHOOK_URL");
             var blobContainerName = Environment.GetEnvironmentVariable("WEBSITE_STORE_CONTAINER");
             var fileName = "website.html";
             var currentFile = Path.Combine(System.IO.Path.GetTempPath(), fileName);

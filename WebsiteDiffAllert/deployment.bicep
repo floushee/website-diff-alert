@@ -1,3 +1,5 @@
+param websiteUrl string
+param webhookUrl string
 var websiteStoreContainerName = 'websitestore'
 
 resource storageaccount 'Microsoft.Storage/storageAccounts@2021-04-01' = {
@@ -67,6 +69,14 @@ resource function 'Microsoft.Web/sites@2021-01-15' = {
         {
           name: 'WEBSITE_STORE_CONTAINER'
           value: websiteStoreContainerName
+        }
+        {
+          name: 'WEBSITE_URL'
+          value: websiteUrl
+        }
+        {
+          name: 'WEBHOOK_URL'
+          value: webhookUrl
         }
       ]
     }
