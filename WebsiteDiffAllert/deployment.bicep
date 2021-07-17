@@ -42,6 +42,7 @@ resource function 'Microsoft.Web/sites@2021-01-15' = {
   properties: {
     serverFarmId: servicePlan.id
     siteConfig: {
+      alwaysOn: true
       appSettings: [
         {
           name: 'FUNCTIONS_WORKER_RUNTIME'
