@@ -12,7 +12,7 @@ namespace WebsiteDiffAllert
     public static class WebsiteDiffAllert
     {
         [FunctionName("WebsiteDiffAllert")]
-        public static async Task RunAsync([TimerTrigger("*/15 * * * * *")] TimerInfo myTimer, ILogger log)
+        public static async Task RunAsync([TimerTrigger("0 * * * * *")] TimerInfo myTimer, ILogger log)
         {
             var connectionString = Environment.GetEnvironmentVariable("WEBSITE_STORE_CONNECTION_STRING");
             var websiteUrl = Environment.GetEnvironmentVariable("WEBSITE_URL");
